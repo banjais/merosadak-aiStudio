@@ -1,12 +1,151 @@
 @import "tailwindcss";
 
+:root {
+  --accent-gold: #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-sky: #0ea5e9;
+  --accent-purple: #8b5cf6;
+  --accent-red: #d90429;
+
+  --surface-glass: rgba(7, 15, 30, 0.7);
+  --surface-border: rgba(255, 255, 255, 0.12);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-full: 9999px;
+
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 25px rgba(245, 158, 11, 0.3);
+
+  --transition-fast: 0.18s ease;
+  --transition-smooth: 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   h1, h2, h3, .font-display {
-    font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
   }
+  .mono {
+    font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  }
+}
+
+/* ==========================================================================
+   Round glass map-toggle buttons — shared look for the floating map toolbar
+   and the map-style cycle button, matching the Mero Sadak map UI.
+   ========================================================================== */
+.map-toggle-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--surface-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-toggle-btn:hover {
+  background: rgba(30, 62, 98, 0.8);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+.map-toggle-btn.active {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(30, 62, 98, 0.6);
+}
+
+.map-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.map-toggle-btn .toggle-label {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 5px 10px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.map-toggle-btn:hover .toggle-label {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Distance-calculator "matrix" styling — inputs, table, result rows
+   ========================================================================== */
+.matrix-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.matrix-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
+}
+
+.matrix-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.matrix-result-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.matrix-result-line:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.matrix-table th,
+.matrix-table td {
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.matrix-table td.matrix-cell:hover {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: var(--accent-gold) !important;
 }
 
 /* Custom Leaflet Map styling */

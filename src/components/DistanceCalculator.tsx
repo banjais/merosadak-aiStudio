@@ -33,9 +33,15 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+      <div
+        className="p-6 rounded-2xl"
+        style={{ background: 'var(--surface-glass)', backdropFilter: 'blur(16px)', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-lg)' }}
+      >
         <div className="flex items-center space-x-2">
-          <span className="px-2.5 py-1 text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-lg">
+          <span
+            className="px-2.5 py-1 text-xs font-bold rounded-lg"
+            style={{ background: 'rgba(245, 158, 11, 0.12)', color: 'var(--accent-gold)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+          >
             GEOGRAPHIC MILEAGE ENGINE
           </span>
           <span className="text-xs text-slate-400">Roads Board Nepal Calibration</span>
@@ -49,19 +55,22 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
       </div>
 
       {/* Interactive Pair Calculator Card */}
-      <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6">
+      <div
+        className="p-6 rounded-2xl space-y-6"
+        style={{ background: 'var(--surface-glass)', backdropFilter: 'blur(16px)', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-lg)' }}
+      >
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           {/* Origin Selector */}
           <div className="md:col-span-5 space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
-              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+              <MapPin className="w-3.5 h-3.5" style={{ color: 'var(--accent-gold)' }} />
               <span>Origin Location (City / Junction)</span>
             </label>
             <select
               id="select-calc-origin"
               value={originId}
               onChange={(e) => setOriginId(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+              className="matrix-input"
             >
               {CITIES_AND_JUNCTIONS.map((city) => (
                 <option key={city.id} value={city.id}>
@@ -76,7 +85,7 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
             <button
               onClick={swapCities}
               title="Swap origin and destination"
-              className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 flex items-center justify-center transition shadow-md active:scale-95"
+              className="map-toggle-btn"
             >
               <ArrowUpDown className="w-4 h-4" />
             </button>
@@ -85,14 +94,14 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
           {/* Destination Selector */}
           <div className="md:col-span-5 space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
-              <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+              <MapPin className="w-3.5 h-3.5" style={{ color: 'var(--accent-emerald)' }} />
               <span>Destination Location (City / Junction)</span>
             </label>
             <select
               id="select-calc-dest"
               value={destId}
               onChange={(e) => setDestId(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+              className="matrix-input"
             >
               {CITIES_AND_JUNCTIONS.map((city) => (
                 <option key={city.id} value={city.id}>
@@ -105,17 +114,18 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
 
         {/* Calculation Result Display */}
         {routeResult ? (
-          <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div className="flex items-center space-x-3">
-                <span className="text-lg font-bold text-white">{origin.name}</span>
-                <ArrowRight className="w-5 h-5 text-emerald-400" />
-                <span className="text-lg font-bold text-white">{destination.name}</span>
+          <div className="matrix-result-line flex-col items-stretch space-y-4 !items-stretch">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4" style={{ borderColor: 'var(--surface-border)' }}>
+              <div className="matrix-result-route">
+                <span className="matrix-city-from">{origin.name}</span>
+                <span className="matrix-arrow">➔</span>
+                <span className="matrix-city-to">{destination.name}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => onPlanFullRoute && onPlanFullRoute(originId, destId)}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center space-x-1.5"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5"
+                  style={{ background: 'var(--accent-emerald)', color: '#04120c' }}
                 >
                   <span>Open in Route Optimizer</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -125,34 +135,34 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="p-3.5 rounded-xl" style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid var(--surface-border)' }}>
                 <div className="text-xs text-slate-400 font-medium">Road Driving Distance</div>
-                <div className="text-2xl font-black text-emerald-400 mt-0.5 font-display">
+                <div className="text-2xl font-black mt-0.5 font-display mono" style={{ color: 'var(--accent-emerald)' }}>
                   {routeResult.totalDistanceKm} <span className="text-sm font-normal text-slate-400">km</span>
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">Aerial: {aerialDistance} km straight-line</div>
               </div>
 
-              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="p-3.5 rounded-xl" style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid var(--surface-border)' }}>
                 <div className="text-xs text-slate-400 font-medium">Estimated Drive Time</div>
-                <div className="text-2xl font-black text-cyan-400 mt-0.5 font-display">
+                <div className="text-2xl font-black mt-0.5 font-display mono" style={{ color: 'var(--accent-sky)' }}>
                   {Math.floor(routeResult.estimatedTimeMinutes / 60)}h {routeResult.estimatedTimeMinutes % 60}m
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">Avg Speed: ~{Math.round(routeResult.totalDistanceKm / (routeResult.estimatedTimeMinutes / 60))} km/h</div>
               </div>
 
-              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="p-3.5 rounded-xl" style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid var(--surface-border)' }}>
                 <div className="text-xs text-slate-400 font-medium">Elevation Delta</div>
-                <div className="text-2xl font-black text-purple-400 mt-0.5 font-display flex items-baseline space-x-1">
+                <div className="text-2xl font-black mt-0.5 font-display mono flex items-baseline space-x-1" style={{ color: 'var(--accent-purple)' }}>
                   <span>{destination.elevationM - origin.elevationM > 0 ? `+${destination.elevationM - origin.elevationM}` : destination.elevationM - origin.elevationM}</span>
                   <span className="text-sm font-normal text-slate-400">m</span>
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">{origin.elevationM}m ➔ {destination.elevationM}m</div>
               </div>
 
-              <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="p-3.5 rounded-xl" style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid var(--surface-border)' }}>
                 <div className="text-xs text-slate-400 font-medium">Est. Petrol / Diesel Cost</div>
-                <div className="text-2xl font-black text-amber-400 mt-0.5 font-display">
+                <div className="text-2xl font-black mt-0.5 font-display mono" style={{ color: 'var(--accent-gold)' }}>
                   Rs. {routeResult.fuelEstimate.costNpr.toLocaleString()}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">~{routeResult.fuelEstimate.liters} Liters required</div>
@@ -166,12 +176,19 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
               </div>
               <div className="flex flex-wrap gap-2">
                 {routeResult.steps.map((st, i) => (
-                  <div key={i} className="flex items-center space-x-2 bg-slate-900 p-2 rounded-xl border border-slate-800 text-xs">
-                    <span className="w-5 h-5 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-[10px]">
+                  <div
+                    key={i}
+                    className="flex items-center space-x-2 p-2 rounded-xl text-xs"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--surface-border)' }}
+                  >
+                    <span
+                      className="w-5 h-5 rounded-full font-bold flex items-center justify-center text-[10px] mono"
+                      style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--accent-gold)' }}
+                    >
                       {i + 1}
                     </span>
                     <span className="text-slate-200 font-medium">{st.instruction}</span>
-                    <span className="text-slate-500 font-semibold">({st.distanceKm} km)</span>
+                    <span className="text-slate-500 font-semibold mono">({st.distanceKm} km)</span>
                   </div>
                 ))}
               </div>
@@ -185,10 +202,13 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
       </div>
 
       {/* Comprehensive City-to-City Distance Matrix Table */}
-      <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+      <div
+        className="p-6 rounded-2xl space-y-4"
+        style={{ background: 'var(--surface-glass)', backdropFilter: 'blur(16px)', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-lg)' }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-bold text-white">Nepal Major Hubs Distance Matrix (km)</h3>
+            <h3 className="text-lg font-bold text-white font-display">Nepal Major Hubs Distance Matrix (km)</h3>
             <p className="text-xs text-slate-400">Click any cell to load the calculation instantly into the calculator.</p>
           </div>
           <input
@@ -196,15 +216,15 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
             placeholder="Filter matrix hubs..."
             value={matrixFilter}
             onChange={(e) => setMatrixFilter(e.target.value)}
-            className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            className="matrix-input sm:max-w-[220px]"
           />
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <div className="overflow-x-auto rounded-xl matrix-table" style={{ border: '1px solid var(--surface-border)' }}>
           <table className="w-full text-center text-xs text-slate-300">
-            <thead className="bg-slate-950 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <thead className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <tr>
-                <th className="py-2.5 px-3 text-left bg-slate-900 sticky left-0 z-10 border-r border-slate-800">City Hub</th>
+                <th className="py-2.5 px-3 text-left sticky left-0 z-10" style={{ background: 'rgba(15,23,42,0.98)' }}>City Hub</th>
                 {keyHubs
                   .filter((h) => h.name.toLowerCase().includes(matrixFilter.toLowerCase()))
                   .map((hub) => (
@@ -214,12 +234,12 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
                   ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody>
               {keyHubs
                 .filter((h) => h.name.toLowerCase().includes(matrixFilter.toLowerCase()))
                 .map((rowHub) => (
-                  <tr key={rowHub.id} className="hover:bg-slate-850/40 transition">
-                    <td className="py-2.5 px-3 text-left font-bold text-white bg-slate-900/95 sticky left-0 z-10 border-r border-slate-800 whitespace-nowrap">
+                  <tr key={rowHub.id} className="hover:bg-white/[0.03] transition">
+                    <td className="py-2.5 px-3 text-left font-bold text-white sticky left-0 z-10 whitespace-nowrap" style={{ background: 'rgba(15,23,42,0.95)' }}>
                       {rowHub.name.split(' ')[0]} <span className="text-[10px] text-slate-500 font-normal">({rowHub.elevationM}m)</span>
                     </td>
                     {keyHubs
@@ -227,7 +247,7 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
                       .map((colHub) => {
                         if (rowHub.id === colHub.id) {
                           return (
-                            <td key={colHub.id} className="py-2.5 px-3 text-slate-600 bg-slate-950/40">
+                            <td key={colHub.id} className="py-2.5 px-3 text-slate-600" style={{ background: 'rgba(0,0,0,0.2)' }}>
                               -
                             </td>
                           );
@@ -240,7 +260,7 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({ onPlanFu
                               setOriginId(rowHub.id);
                               setDestId(colHub.id);
                             }}
-                            className="py-2.5 px-3 font-semibold text-slate-200 hover:bg-emerald-500/20 hover:text-emerald-300 cursor-pointer transition"
+                            className="matrix-cell py-2.5 px-3 font-semibold text-slate-200 cursor-pointer transition mono"
                             title={`Calculate ${rowHub.name} to ${colHub.name}`}
                           >
                             {dist}

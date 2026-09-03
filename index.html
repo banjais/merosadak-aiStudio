@@ -8,11 +8,190 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Critical splash CSS — inlined so it paints before the JS bundle loads */
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #090d16;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+      }
+      #app-splash.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      #app-splash .splash-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        animation: splashFadeUp 0.8s ease-out;
+      }
+      #app-splash .splash-logo {
+        margin-bottom: 18px;
+        animation: splashPulse 2.4s ease-in-out infinite;
+        filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.55));
+      }
+      #app-splash .splash-title {
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        line-height: 1.1;
+        margin-bottom: 6px;
+        animation: splashShimmer 2.2s linear infinite;
+        background: linear-gradient(90deg, #ffffff 0%, #fbbf24 50%, #ffffff 100%);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      #app-splash .splash-subtitle {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #f59e0b;
+        letter-spacing: 0.04em;
+        margin-bottom: 8px;
+      }
+      #app-splash .splash-desc {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #94a3b8;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+      #app-splash .splash-progress-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 280px;
+        margin: 0 auto 18px;
+      }
+      #app-splash .splash-progress-bar {
+        flex: 1;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      #app-splash .splash-progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #f59e0b, #d90429, #8b5cf6);
+        border-radius: 9999px;
+        transition: width 0.15s ease-out;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+      }
+      #app-splash .splash-percent {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #ffffff;
+        min-width: 38px;
+        text-align: right;
+      }
+      #app-splash .splash-footer {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.45);
+        letter-spacing: 0.04em;
+      }
+      #app-splash .splash-glow {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: radial-gradient(circle at 50% 40%, rgba(245, 158, 11, 0.12) 0%, transparent 60%);
+        pointer-events: none;
+      }
+      @keyframes splashFadeUp {
+        from { opacity: 0; transform: translateY(18px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes splashPulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.06); }
+      }
+      @keyframes splashShimmer {
+        0%   { background-position: 100% 0; }
+        100% { background-position: -100% 0; }
+      }
+      @media (max-width: 768px) {
+        #app-splash .splash-title { font-size: 1.3rem; }
+        #app-splash .splash-subtitle { font-size: 0.8rem; }
+        #app-splash .splash-desc { font-size: 0.72rem; }
+        #app-splash .splash-logo svg { width: 52px; height: 52px; }
+      }
+    </style>
   </head>
   <body class="bg-slate-900 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white">
+    <!-- ==========================================
+          Splash / Loading Screen — first screen shown before the app boots
+          ========================================== -->
+    <div id="app-splash">
+      <div class="splash-content">
+        <div class="splash-logo">
+          <svg viewBox="0 0 24 24" width="64" height="64">
+            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" fill="#f59e0b"/>
+          </svg>
+        </div>
+        <div class="splash-title">MERO SADAK</div>
+        <div class="splash-subtitle">मेरो सडक</div>
+        <div class="splash-desc">Nepal National Road Network &amp; GIS</div>
+        <div class="splash-progress-wrap">
+          <div class="splash-progress-bar">
+            <div id="splashProgress" class="splash-progress-fill"></div>
+          </div>
+          <div id="splashPercent" class="splash-percent">0%</div>
+        </div>
+        <div class="splash-footer">Initializing Map, Routes &amp; Live Data…</div>
+      </div>
+      <div class="splash-glow"></div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function () {
+        var fill = document.getElementById('splashProgress');
+        var pct = document.getElementById('splashPercent');
+        var splash = document.getElementById('app-splash');
+        var progress = 0;
+        var setProgress = function (p) {
+          progress = Math.min(100, Math.max(progress, p));
+          if (fill) fill.style.width = progress + '%';
+          if (pct) pct.textContent = Math.round(progress) + '%';
+        };
+        setProgress(8);
+        var ramp = setInterval(function () {
+          setProgress(progress + (progress < 70 ? 6 : 2));
+          if (progress >= 92) clearInterval(ramp);
+        }, 140);
+
+        var finish = function () {
+          clearInterval(ramp);
+          setProgress(100);
+          setTimeout(function () {
+            if (!splash) return;
+            splash.classList.add('hidden');
+            setTimeout(function () { splash.remove(); }, 700);
+          }, 300);
+        };
+
+        // The app dispatches this once the map + initial data are mounted.
+        window.addEventListener('app:ready', finish, { once: true });
+        // Fallback in case the app never dispatches (or fails silently).
+        window.addEventListener('load', function () {
+          setTimeout(finish, 1200);
+        });
+      })();
+    </script>
   </body>
 </html>
 

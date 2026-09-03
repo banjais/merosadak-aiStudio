@@ -201,6 +201,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     mapInstanceRef.current = map;
 
+    // Signal the splash screen (in index.html) that the map has mounted.
+    window.dispatchEvent(new Event('app:ready'));
+
     return () => {
       map.remove();
       mapInstanceRef.current = null;
@@ -216,23 +219,38 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       map.removeLayer(tileLayerRef.current);
     }
 
-    let url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    let attribution = '&copy; <a href="https://carto.com/">CARTO</a> | DOR Nepal Highway GIS';
-    let maxZoom = 19;
+    let url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    let attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    let maxZoom = 18;
 
     if (mapStyle === 'satellite') {
       url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+      attribution = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.esri.com/">Esri</a> &copy; <a href="https://www.arcgis.com/home/item.html?id=1a3f453d52954426a54ab29394f25a09">Source: Esri, Earthstar Geographics</a>';
     } else if (mapStyle === 'terrain') {
       url = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-      attribution = 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)';
-      maxZoom = 17;
+      attribution = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://opentopomap.org/">OpenTopoMap</a>';
     }
 
     const newLayer = L.tileLayer(url, {
       attribution,
-      subdomains: mapStyle === 'standard' ? 'abcd' : 'abc',
+      subdomains: 'abc',
       maxZoom,
+      detectRetina: true,
+      errorTileUrl:
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+    });
+
+    // Auto-fallback to the next basemap if tiles keep failing to load
+    // (matches the resilience behaviour in the public Mero Sadak map).
+    let tileErrorCount = 0;
+    newLayer.on('tileerror', () => {
+      tileErrorCount += 1;
+      if (tileErrorCount >= 5) {
+        tileErrorCount = 0;
+        const cycle: Array<'standard' | 'satellite' | 'terrain'> = ['standard', 'terrain', 'satellite'];
+        const next = cycle.find((s) => s !== mapStyle) || 'standard';
+        setMapStyle(next);
+      }
     });
 
     newLayer.addTo(map);
@@ -1333,183 +1351,108 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         </button>
       </div>
 
-      {/* Professional Right-Aligned Vertical Icon Layer Toolbar */}
+      {/* Right-Aligned Floating Map Toggles — round glass buttons, matching the public Mero Sadak map UI */}
       <div className="absolute top-4 right-4 z-[1000] flex flex-col items-end space-y-2">
         <button
           onClick={handleToggleToolbar}
-          className={`w-10 h-10 backdrop-blur-md rounded-xl shadow-2xl flex items-center justify-center transition border ${
-            isToolbarOpen
-              ? 'bg-emerald-950/90 text-emerald-400 border-emerald-500/50 shadow-emerald-500/10'
-              : 'bg-slate-950/90 text-slate-300 border-slate-800 hover:bg-slate-900'
-          }`}
+          className={`map-toggle-btn ${isToolbarOpen ? 'active' : ''}`}
           title={isToolbarOpen ? "Close Map Layers (Hides all showing layers)" : "Open Map Layers Toolbar"}
           id="toggle-toolbar-collapse"
         >
-          <Layers className={`w-5 h-5 ${isToolbarOpen ? 'rotate-90 text-emerald-400' : 'text-slate-300'} transition-transform`} />
+          <Layers className={`w-4 h-4 transition-transform ${isToolbarOpen ? 'rotate-90' : ''}`} />
+        </button>
+
+        {/* Map Style Cycle Button — same round glass style, cycles Standard → Satellite → Terrain */}
+        <button
+          onClick={() => setMapStyle(mapStyle === 'standard' ? 'satellite' : mapStyle === 'satellite' ? 'terrain' : 'standard')}
+          className="map-toggle-btn"
+          title={`Map Style: ${mapStyle === 'standard' ? 'Standard' : mapStyle === 'satellite' ? 'Satellite' : 'Terrain'} (tap to cycle)`}
+          id="btn-map-style-cycle"
+        >
+          {mapStyle === 'standard' && <MapIcon className="w-4 h-4" />}
+          {mapStyle === 'satellite' && <Globe className="w-4 h-4" />}
+          {mapStyle === 'terrain' && <Mountain className="w-4 h-4" />}
+          <span className="toggle-label">
+            {mapStyle === 'standard' ? '🗺️ Standard' : mapStyle === 'satellite' ? '🛰️ Satellite' : '🏔️ Terrain'}
+          </span>
         </button>
 
         {isToolbarOpen && (
-          <div className="bg-slate-950/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-800 shadow-2xl flex flex-col space-y-1.5 animate-fadeIn">
+          <div
+            className="flex flex-col space-y-1.5 p-1.5 rounded-2xl animate-fadeIn"
+            style={{ background: 'var(--surface-glass)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-lg)' }}
+          >
             {/* Highways Toggle (Show Everywhere) */}
             <button
               onClick={() => handleToggleLayer('highways')}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                activeLayer === 'highways'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 ring-1 ring-emerald-400 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-              }`}
+              className={`map-toggle-btn ${activeLayer === 'highways' ? 'active' : ''}`}
               id="toggle-layer-highways"
-              title="National Highways (Show Everywhere)"
             >
-              <span>🛣️</span>
-              {activeLayer === 'highways' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full ring-1 ring-slate-950" />
-              )}
+              <span className="text-sm">🛣️</span>
+              <span className="toggle-label">National Highways</span>
             </button>
 
             {/* Weather Passes & Nodes Toggle (Show Everywhere) */}
             <button
               onClick={() => handleToggleLayer('weather')}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                activeLayer === 'weather'
-                  ? 'bg-sky-500/20 text-sky-400 border border-sky-500/50 ring-1 ring-sky-400 shadow-md shadow-sky-500/20'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-              }`}
+              className={`map-toggle-btn ${activeLayer === 'weather' ? 'active' : ''}`}
               id="toggle-layer-weather"
-              title="Weather Passes & Met Nodes (Show Everywhere)"
             >
-              <CloudRain className="w-4 h-4 text-sky-400" />
-              {activeLayer === 'weather' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-sky-400 rounded-full ring-1 ring-slate-950" />
-              )}
+              <CloudRain className="w-4 h-4" style={{ color: activeLayer === 'weather' ? undefined : '#38bdf8' }} />
+              <span className="toggle-label">Weather Passes & Met Nodes</span>
             </button>
 
             {/* Road Hazards & Incidents Toggle (Show Everywhere) */}
             <button
               onClick={() => handleToggleLayer('incidents')}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                activeLayer === 'incidents'
-                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 ring-1 ring-rose-400 shadow-md shadow-rose-500/20'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-              }`}
+              className={`map-toggle-btn ${activeLayer === 'incidents' ? 'active' : ''}`}
               id="toggle-layer-incidents"
-              title="Road Hazards & Incidents (Show Everywhere)"
             >
-              <AlertTriangle className="w-4 h-4 text-rose-400" />
-              {activeLayer === 'incidents' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-400 rounded-full ring-1 ring-slate-950" />
-              )}
+              <AlertTriangle className="w-4 h-4" style={{ color: activeLayer === 'incidents' ? undefined : '#f87171' }} />
+              <span className="toggle-label">Road Hazards & Incidents</span>
             </button>
 
             {/* Traffic Corridors Toggle (Show Everywhere) */}
             <button
               onClick={() => handleToggleLayer('traffic')}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                activeLayer === 'traffic'
-                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50 ring-1 ring-amber-400 shadow-md shadow-amber-500/20'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-              }`}
+              className={`map-toggle-btn ${activeLayer === 'traffic' ? 'active' : ''}`}
               id="toggle-layer-traffic"
-              title="Live Traffic Corridors (Show Everywhere)"
             >
-              <Gauge className="w-4 h-4 text-amber-400" />
-              {activeLayer === 'traffic' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full ring-1 ring-slate-950" />
-              )}
+              <Gauge className="w-4 h-4" style={{ color: activeLayer === 'traffic' ? undefined : 'var(--accent-gold)' }} />
+              <span className="toggle-label">Live Traffic Corridors</span>
             </button>
 
             {/* POIs, Fuel & EV Fast Chargers Toggle (Show Everywhere) */}
             <button
               onClick={() => handleToggleLayer('pois')}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                activeLayer === 'pois'
-                  ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50 ring-1 ring-teal-400 shadow-md shadow-teal-500/20'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-              }`}
+              className={`map-toggle-btn ${activeLayer === 'pois' ? 'active' : ''}`}
               id="toggle-layer-pois"
-              title="POIs, Fuel & EV Chargers (Show Everywhere)"
             >
-              <Fuel className="w-4 h-4 text-teal-400" />
-              {activeLayer === 'pois' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-teal-400 rounded-full ring-1 ring-slate-950" />
-              )}
+              <Fuel className="w-4 h-4" style={{ color: activeLayer === 'pois' ? undefined : '#2dd4bf' }} />
+              <span className="toggle-label">POIs, Fuel & EV Chargers</span>
             </button>
 
             {/* Alternatives Toggle (Show Everywhere) */}
             {hasAlternatives && (
               <button
                 onClick={() => handleToggleLayer('alternatives')}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                  activeLayer === 'alternatives'
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50 ring-1 ring-purple-400 shadow-md shadow-purple-500/20'
-                    : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-                }`}
+                className={`map-toggle-btn ${activeLayer === 'alternatives' ? 'active' : ''}`}
                 id="toggle-layer-alternatives"
-                title="Alternative Routes (Show Everywhere)"
               >
-                <span>🔄</span>
-                {activeLayer === 'alternatives' && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-400 rounded-full ring-1 ring-slate-950" />
-                )}
+                <span className="text-sm">🔄</span>
+                <span className="toggle-label">Alternative Routes</span>
               </button>
             )}
 
             {/* Map Symbology & Safety Legend Toggle */}
             <button
               onClick={() => setShowLegend(!showLegend)}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition relative ${
-                showLegend
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-950'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-              }`}
+              className={`map-toggle-btn ${showLegend ? 'active' : ''}`}
               id="toggle-map-legend"
-              title={showLegend ? "Hide Map Legend" : "Show Map Legend"}
             >
               <Info className="w-4 h-4" />
-              {showLegend && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full ring-1 ring-slate-950" />
-              )}
+              <span className="toggle-label">{showLegend ? "Hide Map Legend" : "Show Map Legend"}</span>
             </button>
-
-            {/* Map Style Selector: Standard, Satellite, Terrain */}
-            <div className="pt-2 pb-1 border-t border-slate-800 flex flex-col space-y-1.5">
-              <button
-                onClick={() => setMapStyle('standard')}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
-                  mapStyle === 'standard'
-                    ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-                }`}
-                title="Standard Map View"
-                id="btn-map-style-standard"
-              >
-                <MapIcon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setMapStyle('satellite')}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
-                  mapStyle === 'satellite'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-                }`}
-                title="Satellite Map View"
-                id="btn-map-style-satellite"
-              >
-                <Globe className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setMapStyle('terrain')}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
-                  mapStyle === 'terrain'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
-                }`}
-                title="Terrain Topo Map View"
-                id="btn-map-style-terrain"
-              >
-                <Mountain className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         )}
       </div>
